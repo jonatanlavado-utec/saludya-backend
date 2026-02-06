@@ -1,0 +1,7 @@
+services:
+  saludya:
+    build: .
+    container_name: saludya-app
+    ports:
+      - "8007:80"
+    restart: unless-stopped
