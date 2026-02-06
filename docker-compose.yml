@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: saludya_postgres
+    environment:
+      POSTGRES_USER: saludya
+      POSTGRES_PASSWORD: saludya123
+      POSTGRES_DB: saludya_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saludya"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - saludya-network
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./services/auth_service
+      dockerfile: Dockerfile
+    container_name: auth_service
+    environment:
+      DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - saludya-network
+    restart: unless-stopped
+
+  # User Service
+  user-service:
+    build:
+      context: ./services/user_service
+      dockerfile: Dockerfile
+    container_name: user_service
+    environment:
+      DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - saludya-network
+    restart: unless-stopped
+
+  # Catalog Service
+  catalog-service:
+    build:
+      context: ./services/catalog_service
+      dockerfile: Dockerfile
+    container_name: catalog_service
+    environment:
+      DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
+    ports:
+      - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - saludya-network
+    restart: unless-stopped
+
+  # Appointment Service
+  appointment-service:
+    build:
+      context: ./services/appointment_service
+      dockerfile: Dockerfile
+    container_name: appointment_service
+    environment:
+      DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
+    ports:
+      - "8004:8004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - saludya-network
+    restart: unless-stopped
+
+  # AI Orientation Service
+  ai-orientation-service:
+    build:
+      context: ./services/ai_orientation_service
+      dockerfile: Dockerfile
+    container_name: ai_orientation_service
+    environment:
+      DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
+    ports:
+      - "8005:8005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - saludya-network
+    restart: unless-stopped
+
+  # Payment Service
+  payment-service:
+    build:
+      context: ./services/payment_service
+      dockerfile: Dockerfile
+    container_name: payment_service
+    environment:
+      DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
+    ports:
+      - "8006:8006"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - saludya-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  saludya-network:
+    driver: bridge

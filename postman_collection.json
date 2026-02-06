@@ -1,0 +1,428 @@
+{
+  "info": {
+    "name": "SaludYa Microservices API",
+    "description": "Complete API collection for SaludYa telemedicine platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth Service",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8001/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8001/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Service",
+      "item": [
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Juan\",\n  \"last_name\": \"Pérez\",\n  \"dni\": \"12345678\",\n  \"email\": \"juan.perez@example.com\",\n  \"phone\": \"+51987654321\",\n  \"birth_date\": \"1990-01-15\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8002/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8002",
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8002/users/{{user_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8002",
+              "path": ["users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Juan Carlos\",\n  \"phone\": \"+51912345678\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8002/users/{{user_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8002",
+              "path": ["users", "{{user_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog Service",
+      "item": [
+        {
+          "name": "Get Specialties",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8003/specialties",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8003",
+              "path": ["specialties"]
+            }
+          }
+        },
+        {
+          "name": "Get All Doctors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8003/doctors",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8003",
+              "path": ["doctors"]
+            }
+          }
+        },
+        {
+          "name": "Get Doctors by Specialty",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8003/doctors?specialty_id={{specialty_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8003",
+              "path": ["doctors"],
+              "query": [
+                {
+                  "key": "specialty_id",
+                  "value": "{{specialty_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Doctor by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8003/doctors/{{doctor_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8003",
+              "path": ["doctors", "{{doctor_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Appointment Service",
+      "item": [
+        {
+          "name": "Create Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"doctor_id\": \"{{doctor_id}}\",\n  \"doctor_name\": \"Dr. Carlos Mendoza\",\n  \"specialty_name\": \"Cardiología\",\n  \"appointment_date\": \"2024-02-20T15:00:00\",\n  \"price\": 80.0,\n  \"notes\": \"Primera consulta\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8004/appointments",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8004",
+              "path": ["appointments"]
+            }
+          }
+        },
+        {
+          "name": "Get User Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8004/appointments/user/{{user_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8004",
+              "path": ["appointments", "user", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Appointment by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8004/appointments/{{appointment_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8004",
+              "path": ["appointments", "{{appointment_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Appointment",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8004/appointments/{{appointment_id}}/cancel",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8004",
+              "path": ["appointments", "{{appointment_id}}", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Orientation Service",
+      "item": [
+        {
+          "name": "Get Orientation - Cardiology",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": \"Tengo dolor de pecho y palpitaciones\",\n  \"user_id\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8005/ai/orient",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8005",
+              "path": ["ai", "orient"]
+            }
+          }
+        },
+        {
+          "name": "Get Orientation - Dermatology",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": \"Tengo manchas en la piel y picazón\",\n  \"user_id\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8005/ai/orient",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8005",
+              "path": ["ai", "orient"]
+            }
+          }
+        },
+        {
+          "name": "Get Orientation - Neurology",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": \"Tengo dolor de cabeza intenso y mareos\",\n  \"user_id\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8005/ai/orient",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8005",
+              "path": ["ai", "orient"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment Service",
+      "item": [
+        {
+          "name": "Process Payment - Visa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"appointment_id\": \"{{appointment_id}}\",\n  \"amount\": 80.0,\n  \"card_number\": \"4532123456789012\",\n  \"card_holder\": \"Juan Pérez\",\n  \"expiry_date\": \"12/25\",\n  \"cvv\": \"123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8006/payments",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8006",
+              "path": ["payments"]
+            }
+          }
+        },
+        {
+          "name": "Process Payment - Mastercard",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"appointment_id\": \"{{appointment_id}}\",\n  \"amount\": 90.0,\n  \"card_number\": \"5425233430109903\",\n  \"card_holder\": \"María López\",\n  \"expiry_date\": \"08/26\",\n  \"cvv\": \"456\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8006/payments",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8006",
+              "path": ["payments"]
+            }
+          }
+        },
+        {
+          "name": "Get Payment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8006/payments/{{payment_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8006",
+              "path": ["payments", "{{payment_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "doctor_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "specialty_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "appointment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "payment_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
