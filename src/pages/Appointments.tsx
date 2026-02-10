@@ -22,8 +22,12 @@ const Appointments: React.FC = () => {
   const { appointments, cancelAppointment } = useApp();
 
   const upcomingAppointments = appointments
-    .filter(apt => apt.status === 'scheduled')
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    .filter(apt => apt.status === 'scheduled' || apt.status === 'cancelled')
+    .sort((a, b) => {
+      if (a.status === 'scheduled' && b.status !== 'scheduled') return -1;
+      if (a.status !== 'scheduled' && b.status === 'scheduled') return 1;
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
 
   return (
     <div className="space-y-6 animate-slide-up">
@@ -54,36 +58,38 @@ const Appointments: React.FC = () => {
                 appointment={appointment}
                 onClick={() => navigate(`/appointment/${appointment.id}`)}
               />
-              <div className="mt-2 px-4">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
-                    >
-                      Cancelar Cita
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>¿Cancelar esta cita?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Esta acción no se puede deshacer. Tu cita con {appointment.doctor.name} será cancelada.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>No, mantener</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={() => cancelAppointment(appointment.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              {appointment.status === 'scheduled' && (
+                <div className="mt-2 px-4">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
                       >
-                        Sí, cancelar
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
+                        Cancelar Cita
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>¿Cancelar esta cita?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta acción no se puede deshacer. Tu cita con {appointment.doctor.name} será cancelada.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>No, mantener</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => cancelAppointment(appointment.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Sí, cancelar
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
             </div>
           ))}
         </div>
