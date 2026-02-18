@@ -6,11 +6,12 @@ from typing import Optional
 class AppointmentCreate(BaseModel):
     user_id: UUID
     doctor_id: UUID
-    doctor_name: str
-    specialty_name: str
+    doctor_name: Optional[str] = None  # Optional - fetched from Catalog Service
+    specialty_name: Optional[str] = None  # Optional - fetched from Catalog Service
     appointment_date: datetime
     price: float
     notes: Optional[str] = None
+    payment_id: Optional[UUID] = None
 
 class AppointmentUpdate(BaseModel):
     appointment_date: Optional[datetime] = None
