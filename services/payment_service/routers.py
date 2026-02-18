@@ -6,8 +6,18 @@ from schemas import PaymentRequest, PaymentResponse
 from uuid import UUID
 import secrets
 import random
+from service_clients import UserServiceClient, AppointmentServiceClient
 
 payment_router = APIRouter()
+
+
+def get_user_client() -> UserServiceClient:
+    return UserServiceClient()
+
+
+def get_appointment_client() -> AppointmentServiceClient:
+    return AppointmentServiceClient()
+
 
 def detect_card_type(card_number: str) -> str:
     first_digit = card_number[0]
@@ -20,11 +30,32 @@ def detect_card_type(card_number: str) -> str:
     else:
         return 'Unknown'
 
+
 def simulate_payment_processing() -> bool:
     return random.random() > 0.05
 
+
 @payment_router.post("", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
-def process_payment(payment_request: PaymentRequest, db: Session = Depends(get_db)):
+def process_payment(
+    payment_request: PaymentRequest,
+    db: Session = Depends(get_db),
+    user_client: UserServiceClient = Depends(get_user_client),
+    appointment_client: AppointmentServiceClient = Depends(get_appointment_client)
+):
+    # Validate user exists via User Service API
+    if not user_client.user_exists(payment_request.user_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found. Please provide a valid user ID."
+        )
+
+    # Validate appointment exists via Appointment Service API
+    if not appointment_client.appointment_exists(payment_request.appointment_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Appointment not found. Please provide a valid appointment ID."
+        )
+
     card_number_clean = payment_request.card_number.replace(' ', '').replace('-', '')
     card_last_four = card_number_clean[-4:]
     card_type = detect_card_type(card_number_clean)

@@ -6,13 +6,54 @@ from schemas import AppointmentCreate, AppointmentResponse
 from typing import List
 from uuid import UUID
 from datetime import datetime
+from service_clients import UserServiceClient, CatalogServiceClient
 
 appointment_router = APIRouter()
 
+
+def get_user_client() -> UserServiceClient:
+    return UserServiceClient()
+
+
+def get_catalog_client() -> CatalogServiceClient:
+    return CatalogServiceClient()
+
+
 @appointment_router.post("", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)
-def create_appointment(appointment: AppointmentCreate, db: Session = Depends(get_db)):
-    new_appointment = Appointment(**appointment.model_dump())
-    new_appointment.status = AppointmentStatus.CONFIRMED
+def create_appointment(
+    appointment: AppointmentCreate,
+    db: Session = Depends(get_db),
+    user_client: UserServiceClient = Depends(get_user_client),
+    catalog_client: CatalogServiceClient = Depends(get_catalog_client)
+):
+    # Validate user exists via User Service API
+    if not user_client.user_exists(appointment.user_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found. Please provide a valid user ID."
+        )
+
+    # Validate doctor exists via Catalog Service API
+    if not catalog_client.doctor_exists(appointment.doctor_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Doctor not found. Please provide a valid doctor ID."
+        )
+
+    # Get doctor details for denormalized data
+    doctor = catalog_client.get_doctor(appointment.doctor_id)
+
+    new_appointment = Appointment(
+        user_id=appointment.user_id,
+        doctor_id=appointment.doctor_id,
+        doctor_name=doctor["name"],
+        specialty_name=doctor["specialty_name"],
+        appointment_date=appointment.appointment_date,
+        price=appointment.price,
+        status=AppointmentStatus.CONFIRMED,
+        payment_id=appointment.payment_id,
+        notes=appointment.notes
+    )
 
     db.add(new_appointment)
     db.commit()
