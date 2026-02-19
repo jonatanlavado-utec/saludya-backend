@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Send, Bot, User, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DoctorCard } from '@/components/doctor/DoctorCard';
 import { ChatMessage } from '@/types';
-import { symptomSpecialtyMap, specialties } from '@/data/mockData';
+import { symptomSpecialtyMap, specialties, doctors } from '@/data/mockData';
 import { cn } from '@/lib/utils';
+
+type AiState = 'idle' | 'awaiting_doctor_choice';
 
 const AIAssistant: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +22,10 @@ const AIAssistant: React.FC = () => {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [aiState, setAiState] = useState<AiState>('idle');
+  const [lastSuggestedSpecialtyIds, setLastSuggestedSpecialtyIds] = useState<string[]>([]);
+  const [showDoctors, setShowDoctors] = useState(false);
+  const [suggestedDoctors, setSuggestedDoctors] = useState<typeof doctors>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -27,62 +34,79 @@ const AIAssistant: React.FC = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, showDoctors]);
 
   const findSpecialty = (text: string): string[] => {
     const lowerText = text.toLowerCase();
-    const matchedSpecialties = new Set<string>();
-
+    const matched = new Set<string>();
     for (const [keyword, specs] of Object.entries(symptomSpecialtyMap)) {
       if (lowerText.includes(keyword)) {
-        specs.forEach(s => matchedSpecialties.add(s));
+        specs.forEach(s => matched.add(s));
       }
     }
+    if (matched.size === 0) matched.add('Medicina General');
+    return Array.from(matched);
+  };
 
-    if (matchedSpecialties.size === 0) {
-      matchedSpecialties.add('Medicina General');
-    }
-
-    return Array.from(matchedSpecialties);
+  const addAiMessage = (text: string) => {
+    setMessages(prev => [...prev, {
+      id: (Date.now() + 1).toString(),
+      text,
+      sender: 'ai' as const,
+      timestamp: new Date(),
+    }]);
   };
 
   const handleSend = async () => {
     if (!input.trim()) return;
+    const userText = input.trim();
 
-    const userMessage: ChatMessage = {
+    setMessages(prev => [...prev, {
       id: Date.now().toString(),
-      text: input,
-      sender: 'user',
+      text: userText,
+      sender: 'user' as const,
       timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
+    }]);
     setInput('');
     setIsTyping(true);
+    setShowDoctors(false);
 
-    // Simulate AI response delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    setIsTyping(false);
 
-    const suggestedSpecialties = findSpecialty(input);
-    const specialtyDetails = suggestedSpecialties
+    if (aiState === 'awaiting_doctor_choice') {
+      const lower = userText.toLowerCase();
+      if (lower.includes('sí') || lower.includes('si') || lower.includes('ver') || lower.includes('mostrar') || lower.includes('ok')) {
+        const matched = doctors.filter(d => lastSuggestedSpecialtyIds.includes(d.specialtyId));
+        setSuggestedDoctors(matched);
+        setShowDoctors(true);
+        addAiMessage(
+          matched.length > 0
+            ? `Aquí tienes los médicos disponibles. Puedes elegir uno para agendar directamente, o también puedes agendar solo por especialidad.`
+            : `No encontré médicos disponibles para esa especialidad en este momento. Puedes agendar por especialidad.`
+        );
+        setAiState('idle');
+      } else {
+        addAiMessage('Entendido. Si necesitas ayuda con otros síntomas, ¡cuéntame!');
+        setAiState('idle');
+      }
+      return;
+    }
+
+    // Normal symptom flow
+    const suggestedNames = findSpecialty(userText);
+    const specDetails = suggestedNames
       .map(name => specialties.find(s => s.name === name))
       .filter(Boolean);
 
-    let responseText = `Basándome en tus síntomas, te recomiendo consultar con un especialista en:\n\n`;
-    suggestedSpecialties.forEach(spec => {
-      responseText += `• **${spec}**\n`;
-    });
-    responseText += `\n¿Te gustaría agendar una cita con alguno de estos especialistas?`;
+    setLastSuggestedSpecialtyIds(specDetails.map(s => s!.id));
 
-    const aiMessage: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      text: responseText,
-      sender: 'ai',
-      timestamp: new Date(),
-    };
+    let responseText = `Basándome en tus síntomas, te recomiendo consultar con:\n\n`;
+    suggestedNames.forEach(spec => { responseText += `• **${spec}**\n`; });
+    responseText += `\n¿Te gustaría ver los médicos disponibles para esta especialidad?`;
 
-    setIsTyping(false);
-    setMessages(prev => [...prev, aiMessage]);
+    addAiMessage(responseText);
+    setAiState('awaiting_doctor_choice');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -90,18 +114,6 @@ const AIAssistant: React.FC = () => {
       e.preventDefault();
       handleSend();
     }
-  };
-
-  const getFirstSuggestedSpecialtyId = () => {
-    const lastAiMessage = [...messages].reverse().find(m => m.sender === 'ai' && m.text.includes('recomiendo'));
-    if (lastAiMessage) {
-      for (const spec of specialties) {
-        if (lastAiMessage.text.includes(spec.name)) {
-          return spec.id;
-        }
-      }
-    }
-    return '1';
   };
 
   return (
@@ -127,28 +139,18 @@ const AIAssistant: React.FC = () => {
               message.sender === 'user' ? 'flex-row-reverse' : ''
             )}
           >
-            <div
-              className={cn(
-                'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-                message.sender === 'ai' 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-secondary'
-              )}
-            >
-              {message.sender === 'ai' ? (
-                <Bot className="w-4 h-4" />
-              ) : (
-                <User className="w-4 h-4" />
-              )}
+            <div className={cn(
+              'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
+              message.sender === 'ai' ? 'bg-primary text-primary-foreground' : 'bg-secondary'
+            )}>
+              {message.sender === 'ai' ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
             </div>
-            <div
-              className={cn(
-                'max-w-[80%] rounded-2xl px-4 py-3',
-                message.sender === 'ai'
-                  ? 'bg-card border border-border shadow-card'
-                  : 'bg-primary text-primary-foreground'
-              )}
-            >
+            <div className={cn(
+              'max-w-[80%] rounded-2xl px-4 py-3',
+              message.sender === 'ai'
+                ? 'bg-card border border-border shadow-card'
+                : 'bg-primary text-primary-foreground'
+            )}>
               <p className="text-sm whitespace-pre-line">{message.text}</p>
             </div>
           </div>
@@ -169,20 +171,30 @@ const AIAssistant: React.FC = () => {
           </div>
         )}
 
+        {/* Doctor cards */}
+        {showDoctors && suggestedDoctors.length > 0 && (
+          <div className="space-y-3 animate-fade-in">
+            {suggestedDoctors.map(doctor => (
+              <DoctorCard
+                key={doctor.id}
+                doctor={doctor}
+                onClick={() => navigate(`/book/datetime/${doctor.id}`)}
+              />
+            ))}
+            {lastSuggestedSpecialtyIds.length > 0 && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate(`/book/doctor/${lastSuggestedSpecialtyIds[0]}`)}
+              >
+                Ver todos los médicos de esta especialidad
+              </Button>
+            )}
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Quick Action */}
-      {messages.length > 2 && (
-        <div className="mb-4">
-          <Button 
-            onClick={() => navigate(`/book/doctor/${getFirstSuggestedSpecialtyId()}`)}
-            className="w-full"
-          >
-            Agendar Cita con Especialista
-          </Button>
-        </div>
-      )}
 
       {/* Input */}
       <div className="flex gap-2 pt-4 border-t border-border">
@@ -190,7 +202,7 @@ const AIAssistant: React.FC = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Describe tus síntomas..."
+          placeholder={aiState === 'awaiting_doctor_choice' ? 'Escribe "sí" o "no"...' : 'Describe tus síntomas...'}
           className="flex-1"
         />
         <Button onClick={handleSend} disabled={!input.trim() || isTyping}>
