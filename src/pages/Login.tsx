@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,27 @@ import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useApp();
+  const { login, isAuthenticated, sessionRestored } = useApp();
+
+  useEffect(() => {
+    if (sessionRestored && isAuthenticated) {
+      navigate('/home', { replace: true });
+    }
+  }, [sessionRestored, isAuthenticated, navigate]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  if (!sessionRestored || (sessionRestored && isAuthenticated)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <LoadingSpinner className="border-primary/30 border-t-primary" />
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,13 +41,13 @@ const Login: React.FC = () => {
     }
 
     setLoading(true);
-    const success = await login(email, password);
+    const result = await login(email, password);
     setLoading(false);
 
-    if (success) {
+    if (result.success) {
       navigate('/home');
     } else {
-      setError('Credenciales inválidas');
+      setError(result.error);
     }
   };
 
