@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from database import get_db
-from models import AuthUser
-from schemas import RegisterRequest, LoginRequest, AuthResponse, LoginResponse
+from models import AuthUser, AuthToken
+from schemas import RegisterRequest, LoginRequest, AuthResponse, LoginResponse, MeResponse
 import bcrypt
 import secrets
+from typing import Optional
 from datetime import datetime
 
 auth_router = APIRouter()
+security = HTTPBearer(auto_error=False)
 
 def hash_password(password: str) -> str:
     salt = bcrypt.gensalt()
@@ -18,6 +21,30 @@ def verify_password(password: str, hashed: str) -> bool:
 
 def generate_token() -> str:
     return secrets.token_urlsafe(32)
+
+
+def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: Session = Depends(get_db),
+) -> AuthUser:
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid token",
+        )
+    token_row = db.query(AuthToken).filter(AuthToken.token == credentials.credentials).first()
+    if not token_row:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+    user = db.query(AuthUser).filter(AuthUser.id == token_row.user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+    return user
 
 @auth_router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
@@ -39,6 +66,8 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(new_user)
 
     token = generate_token()
+    db.add(AuthToken(token=token, user_id=new_user.id))
+    db.commit()
 
     return AuthResponse(
         id=new_user.id,
@@ -67,6 +96,8 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     db.commit()
 
     token = generate_token()
+    db.add(AuthToken(token=token, user_id=user.id))
+    db.commit()
 
     return LoginResponse(
         id=user.id,
@@ -74,3 +105,8 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         token=token,
         message="Login successful"
     )
+
+
+@auth_router.get("/me", response_model=MeResponse)
+def me(current_user: AuthUser = Depends(get_current_user)):
+    return MeResponse(id=current_user.id, email=current_user.email)
