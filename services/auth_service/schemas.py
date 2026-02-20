@@ -27,3 +27,10 @@ class LoginResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class MeResponse(BaseModel):
+    id: UUID
+    email: str
+
+    class Config:
+        from_attributes = True
