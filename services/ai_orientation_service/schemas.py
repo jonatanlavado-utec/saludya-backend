@@ -13,6 +13,8 @@ class OrientationResponse(BaseModel):
     recommended_specialty: str
     confidence: str
     explanation: str
+    comment: str
+    inference_method: str
     created_at: datetime
 
     class Config:

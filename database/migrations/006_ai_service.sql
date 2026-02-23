@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS ai_service.orientation_queries (
     symptoms TEXT NOT NULL,
     recommended_specialty VARCHAR(255) NOT NULL,
     confidence VARCHAR(50) NOT NULL,
+    inference_method VARCHAR(50) NOT NULL DEFAULT 'logic',
+    comment TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMP DEFAULT NOW()
 );
 
