@@ -35,7 +35,7 @@ def simulate_payment_processing() -> bool:
     return random.random() > 0.05
 
 
-@payment_router.post("", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
+@payment_router.post("/", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
 def process_payment(
     payment_request: PaymentRequest,
     db: Session = Depends(get_db),

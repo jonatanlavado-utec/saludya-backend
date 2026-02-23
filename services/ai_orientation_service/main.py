@@ -17,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(ai_router, prefix="/ai", tags=["AI Orientation"])
+app.include_router(ai_router, tags=["AI Orientation"])
 
 @app.on_event("startup")
 async def startup():

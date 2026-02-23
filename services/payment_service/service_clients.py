@@ -5,7 +5,7 @@ Payment Service uses this to validate references with other services.
 import httpx
 from typing import Optional
 from uuid import UUID
-
+import os
 
 class ServiceClient:
     """Base client for inter-service communication."""
@@ -37,8 +37,7 @@ class UserServiceClient(ServiceClient):
     """Client for User Service API."""
 
     def __init__(self, base_url: str = None):
-        import os
-        base_url = base_url or os.getenv("USER_SERVICE_URL", "http://user-service:8002")
+        base_url = base_url or os.getenv("USER_SERVICE_URL", "http://proxy/api/users/")
         super().__init__(base_url)
 
     def get_user(self, user_id: UUID) -> Optional[dict]:
@@ -55,7 +54,7 @@ class AppointmentServiceClient(ServiceClient):
 
     def __init__(self, base_url: str = None):
         import os
-        base_url = base_url or os.getenv("APPOINTMENT_SERVICE_URL", "http://appointment-service:8004")
+        base_url = base_url or os.getenv("APPOINTMENT_SERVICE_URL", "http://proxy/api/appointments/")
         super().__init__(base_url)
 
     def get_appointment(self, appointment_id: UUID) -> Optional[dict]:

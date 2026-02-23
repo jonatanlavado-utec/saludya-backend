@@ -17,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(payment_router, prefix="/payments", tags=["Payments"])
+app.include_router(payment_router, tags=["Payments"])
 
 @app.on_event("startup")
 async def startup():

@@ -38,7 +38,7 @@ class UserServiceClient(ServiceClient):
 
     def __init__(self, base_url: str = None):
         import os
-        base_url = base_url or os.getenv("USER_SERVICE_URL", "http://user-service:8002")
+        base_url = base_url or os.getenv("USER_SERVICE_URL", "http://proxy/api/users/")
         super().__init__(base_url)
 
     def get_user(self, user_id: UUID) -> Optional[dict]:
@@ -55,7 +55,7 @@ class CatalogServiceClient(ServiceClient):
 
     def __init__(self, base_url: str = None):
         import os
-        base_url = base_url or os.getenv("CATALOG_SERVICE_URL", "http://catalog-service:8003")
+        base_url = base_url or os.getenv("CATALOG_SERVICE_URL", "http://proxy/api/catalog/")
         super().__init__(base_url)
 
     def get_doctor(self, doctor_id: UUID) -> Optional[dict]:

@@ -11,7 +11,9 @@ import httpx
 from typing import Optional
 from datetime import datetime
 
-USER_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://user-service:8002").rstrip("/")
+# Route through proxy for production compatibility; internal Docker can override via compose env
+# Keep trailing slash to match nginx location pattern
+USER_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://proxy/api/users/").rstrip("/") + "/"
 
 auth_router = APIRouter()
 security = HTTPBearer(auto_error=False)
@@ -52,27 +54,29 @@ def get_current_user(
 
 @auth_router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
+    print('1')
     existing_user = db.query(AuthUser).filter(AuthUser.email == request.email).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
-
+    print('2')
     hashed_password = hash_password(request.password)
     new_user = AuthUser(
         email=request.email,
         password_hash=hashed_password
     )
+    print('3')
 
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-
+    print('4')
     token = generate_token()
     db.add(AuthToken(token=token, user_id=new_user.id))
     db.commit()
-
+    print('5')
     # Create user profile in user service (same id as auth user)
     user_service_payload = {
         "id": str(new_user.id),
@@ -83,15 +87,19 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
         "phone": request.phone,
         "birth_date": request.birth_date.isoformat() if request.birth_date else None,
     }
+    print('6')
     try:
         with httpx.Client(timeout=10.0) as client:
+            print('USER_SERVICE_URL', USER_SERVICE_URL)
             r = client.post(
-                f"{USER_SERVICE_URL}/users",
+                USER_SERVICE_URL,
                 json=user_service_payload,
             )
+            print('r.status_code', r.status_code)
             if r.status_code >= 400:
                 try:
                     detail = r.json().get("detail", r.text)
+                    print('detail', detail)
                 except Exception:
                     detail = r.text
                 if isinstance(detail, list) and detail:
@@ -103,6 +111,7 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
                     detail=detail,
                 )
     except HTTPException:
+        print('exeption 1')
         token_row = db.query(AuthToken).filter(AuthToken.token == token).first()
         if token_row:
             db.delete(token_row)
@@ -110,6 +119,7 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
         db.commit()
         raise
     except Exception as e:
+        print('exeption 2')
         token_row = db.query(AuthToken).filter(AuthToken.token == token).first()
         if token_row:
             db.delete(token_row)

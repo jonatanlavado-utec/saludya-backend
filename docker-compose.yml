@@ -30,7 +30,7 @@ services:
     container_name: auth_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
-      USER_SERVICE_URL: http://user-service:8002
+      USER_SERVICE_URL: ${PROXY_BASE}/api/users/
     ports:
       - "8001:8001"
     depends_on:
@@ -84,9 +84,9 @@ services:
     container_name: appointment_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
-      USER_SERVICE_URL: http://user-service:8002
-      CATALOG_SERVICE_URL: http://catalog-service:8003
-      PAYMENT_SERVICE_URL: http://payment-service:8006
+      USER_SERVICE_URL: ${PROXY_BASE}/api/users/
+      CATALOG_SERVICE_URL: ${PROXY_BASE}/api/catalog/
+      PAYMENT_SERVICE_URL: ${PROXY_BASE}/api/payments/
     ports:
       - "8004:8004"
     depends_on:
@@ -108,11 +108,27 @@ services:
     container_name: ai_orientation_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
+      GROQ_API_KEY: "${GROQ_API_KEY}"
     ports:
       - "8005:8005"
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - saludya-network
+    restart: unless-stopped
+
+  # Reverse proxy (nginx)
+  proxy:
+    image: nginx:stable-alpine
+    container_name: saludya_proxy
+    ports:
+      - "80:80"      # HTTP (add 443:443 if you supply TLS certs)
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      ai-orientation-service:
+        condition: service_started
     networks:
       - saludya-network
     restart: unless-stopped
@@ -125,8 +141,8 @@ services:
     container_name: payment_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
-      USER_SERVICE_URL: http://user-service:8002
-      APPOINTMENT_SERVICE_URL: http://appointment-service:8004
+      USER_SERVICE_URL: ${PROXY_BASE}/api/users/
+      APPOINTMENT_SERVICE_URL: ${PROXY_BASE}/api/appointments/
     ports:
       - "8006:8006"
     depends_on:
