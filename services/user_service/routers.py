@@ -24,7 +24,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
             detail="DNI already registered"
         )
 
-    new_user = User(**user.model_dump())
+    data = user.model_dump()
+    if data.get("id") is None:
+        del data["id"]
+    new_user = User(**data)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

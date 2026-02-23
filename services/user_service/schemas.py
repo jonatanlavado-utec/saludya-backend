@@ -4,6 +4,7 @@ from uuid import UUID
 from typing import Optional
 
 class UserCreate(BaseModel):
+    id: Optional[UUID] = None  # When set (e.g. by auth service), use this as user id to link with auth_users
     first_name: str
     last_name: str
     dni: str

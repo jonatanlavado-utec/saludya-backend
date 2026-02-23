@@ -6,8 +6,12 @@ from models import AuthUser, AuthToken
 from schemas import RegisterRequest, LoginRequest, AuthResponse, LoginResponse, MeResponse
 import bcrypt
 import secrets
+import os
+import httpx
 from typing import Optional
 from datetime import datetime
+
+USER_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://user-service:8002").rstrip("/")
 
 auth_router = APIRouter()
 security = HTTPBearer(auto_error=False)
@@ -68,6 +72,53 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
     token = generate_token()
     db.add(AuthToken(token=token, user_id=new_user.id))
     db.commit()
+
+    # Create user profile in user service (same id as auth user)
+    user_service_payload = {
+        "id": str(new_user.id),
+        "email": new_user.email,
+        "first_name": request.first_name,
+        "last_name": request.last_name,
+        "dni": request.dni,
+        "phone": request.phone,
+        "birth_date": request.birth_date.isoformat() if request.birth_date else None,
+    }
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            r = client.post(
+                f"{USER_SERVICE_URL}/users",
+                json=user_service_payload,
+            )
+            if r.status_code >= 400:
+                try:
+                    detail = r.json().get("detail", r.text)
+                except Exception:
+                    detail = r.text
+                if isinstance(detail, list) and detail:
+                    detail = detail[0].get("msg", str(detail[0]))
+                if not isinstance(detail, str):
+                    detail = "User service error"
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=detail,
+                )
+    except HTTPException:
+        token_row = db.query(AuthToken).filter(AuthToken.token == token).first()
+        if token_row:
+            db.delete(token_row)
+        db.delete(new_user)
+        db.commit()
+        raise
+    except Exception as e:
+        token_row = db.query(AuthToken).filter(AuthToken.token == token).first()
+        if token_row:
+            db.delete(token_row)
+        db.delete(new_user)
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="User service unavailable. Please try again.",
+        ) from e
 
     return AuthResponse(
         id=new_user.id,

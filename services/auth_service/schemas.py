@@ -1,10 +1,16 @@
 from pydantic import BaseModel, EmailStr
-from datetime import datetime
+from datetime import datetime, date
 from uuid import UUID
+from typing import Optional
 
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
+    first_name: str
+    last_name: str
+    dni: str
+    phone: Optional[str] = None
+    birth_date: Optional[date] = None
 
 class LoginRequest(BaseModel):
     email: EmailStr
