@@ -8,6 +8,9 @@ import { ChatMessage } from '@/types';
 import { specialties, doctors } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 
+// API endpoint for AI service
+const AI_API_URL = `${import.meta.env.VITE_PROXY_URL || ''}/api/ai`;
+
 type AiState = 'idle' | 'awaiting_doctor_choice';
 
 const AIAssistant: React.FC = () => {
@@ -83,8 +86,8 @@ const AIAssistant: React.FC = () => {
 
     // Normal symptom flow: delegate analysis to backend AI Orientation service
     try {
-      const AI_API_URL = import.meta.env.VITE_AI_API_URL ?? 'http://localhost:8005';
-      const res = await fetch(`${AI_API_URL}/ai/orient`, {
+      // Use API URL constant instead of hardcoded path
+      const res = await fetch(`${AI_API_URL}/orient`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ symptoms: userText }),

@@ -2,8 +2,11 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { User, Appointment, Doctor, TimeSlot } from '@/types';
 import { initialAppointments } from '@/data/mockData';
 
-const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL ?? 'http://localhost:8001';
-const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL ?? 'http://localhost:8002';
+// URL of reverse proxy, replace with EC2 public IP
+const PROXY_URL = import.meta.env.VITE_PROXY_URL || '';
+const AUTH_API_URL = `${PROXY_URL}/api/auth`;
+const USER_SERVICE_URL = `${PROXY_URL}/api/users`;
+const AI_API_URL = `${PROXY_URL}/api/ai`;
 const AUTH_TOKEN_KEY = 'saludya_token';
 
 export type AuthResult = { success: boolean; error: string } ; 
@@ -39,7 +42,7 @@ function authUserFromResponse(id: string, email: string, extra: Partial<User> = 
 
 async function fetchUserProfile(userId: string): Promise<User | null> {
   try {
-    const res = await fetch(`${USER_SERVICE_URL}/users/${userId}`);
+    const res = await fetch(`${USER_SERVICE_URL}/${userId}`); // PROXY_URL prefix automatically applied
     if (!res.ok) return null;
     const data = await res.json();
     return {
@@ -68,7 +71,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSessionRestored(true);
       return;
     }
-    fetch(`${AUTH_API_URL}/auth/me`, {
+    fetch(`${AUTH_API_URL}/me`, {
       headers: { Authorization: `Bearer ${storedToken}` },
     })
       .then((res) => {
@@ -99,7 +102,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const login = async (email: string, password: string): Promise<AuthResult> => {
     try {
-      const res = await fetch(`${AUTH_API_URL}/auth/login`, {
+      const res = await fetch(`${AUTH_API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -138,7 +141,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         phone: userData.phone?.trim() || null,
       };
       if (userData.birthDate?.trim()) body.birth_date = userData.birthDate.trim();
-      const res = await fetch(`${AUTH_API_URL}/auth/register`, {
+      const res = await fetch(`${AUTH_API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -179,7 +182,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         phone: userData.phone?.trim() || null,
       };
       if (userData.birthDate !== undefined) body.birth_date = userData.birthDate?.trim() || null;
-      const res = await fetch(`${USER_SERVICE_URL}/users/${user.id}`, {
+      const res = await fetch(`${USER_SERVICE_URL}/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
