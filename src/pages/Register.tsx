@@ -47,8 +47,8 @@ const Register: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
-      setError('Por favor completa los campos obligatorios');
+    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.dni?.trim()) {
+      setError('Por favor completa los campos obligatorios (nombre, apellidos, email, DNI, contraseña)');
       return;
     }
 

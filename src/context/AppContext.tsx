@@ -3,6 +3,7 @@ import { User, Appointment, Doctor, TimeSlot } from '@/types';
 import { initialAppointments } from '@/data/mockData';
 
 const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL ?? 'http://localhost:8001';
+const USER_SERVICE_URL = import.meta.env.VITE_USER_SERVICE_URL ?? 'http://localhost:8002';
 const AUTH_TOKEN_KEY = 'saludya_token';
 
 export type AuthResult = { success: boolean; error: string } ; 
@@ -17,7 +18,7 @@ interface AppContextType {
   login: (email: string, password: string) => Promise<AuthResult>;
   register: (userData: Partial<User>, password: string) => Promise<AuthResult>;
   logout: () => void;
-  updateProfile: (userData: Partial<User>) => void;
+  updateProfile: (userData: Partial<User>) => Promise<{ success: boolean; error?: string }>;
   bookAppointment: (doctor: Doctor, slot: TimeSlot, symptoms?: string) => void;
   cancelAppointment: (appointmentId: string) => void;
 }
@@ -34,6 +35,25 @@ function authUserFromResponse(id: string, email: string, extra: Partial<User> = 
     birthDate: extra.birthDate ?? '',
     phone: extra.phone ?? '',
   };
+}
+
+async function fetchUserProfile(userId: string): Promise<User | null> {
+  try {
+    const res = await fetch(`${USER_SERVICE_URL}/users/${userId}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return {
+      id: String(data.id),
+      email: data.email ?? '',
+      firstName: data.first_name ?? '',
+      lastName: data.last_name ?? '',
+      dni: data.dni ?? '',
+      birthDate: data.birth_date ?? '',
+      phone: data.phone ?? '',
+    };
+  } catch {
+    return null;
+  }
 }
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -59,9 +79,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
         return res.json();
       })
-      .then((data) => {
+      .then(async (data) => {
         if (data?.id != null && data?.email != null) {
-          setUser(authUserFromResponse(data.id, data.email));
+          const profile = await fetchUserProfile(data.id);
+          if (profile) {
+            setUser(profile);
+          } else {
+            setUser(authUserFromResponse(data.id, data.email));
+          }
           setToken(storedToken);
         }
         setSessionRestored(true);
@@ -84,7 +109,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const message = data.detail ?? (res.status === 401 ? 'Credenciales inválidas' : 'Error al iniciar sesión');
         return { success: false, error: typeof message === 'string' ? message : message[0]?.msg ?? 'Error al iniciar sesión' };
       }
-      setUser(authUserFromResponse(data.id, data.email));
+      const profile = await fetchUserProfile(data.id);
+      if (profile) {
+        setUser(profile);
+      } else {
+        setUser(authUserFromResponse(data.id, data.email));
+      }
       setToken(data.token);
       if (data.token) localStorage.setItem(AUTH_TOKEN_KEY, data.token);
       return { success: true, error: '' };
@@ -95,18 +125,35 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const register = async (userData: Partial<User>, password: string): Promise<AuthResult> => {
     if (!userData.email?.trim()) return { success: false, error: 'El correo es obligatorio' };
+    if (!userData.firstName?.trim()) return { success: false, error: 'El nombre es obligatorio' };
+    if (!userData.lastName?.trim()) return { success: false, error: 'Los apellidos son obligatorios' };
+    if (!userData.dni?.trim()) return { success: false, error: 'El DNI es obligatorio' };
     try {
+      const body: Record<string, unknown> = {
+        email: userData.email.trim(),
+        password,
+        first_name: userData.firstName.trim(),
+        last_name: userData.lastName.trim(),
+        dni: userData.dni.trim(),
+        phone: userData.phone?.trim() || null,
+      };
+      if (userData.birthDate?.trim()) body.birth_date = userData.birthDate.trim();
       const res = await fetch(`${AUTH_API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userData.email.trim(), password }),
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         const message = data.detail ?? (res.status === 400 ? 'Error al registrar' : 'Error en el servidor');
         return { success: false, error: typeof message === 'string' ? message : message[0]?.msg ?? 'Error al registrar' };
       }
-      setUser(authUserFromResponse(data.id, data.email, userData));
+      const profile = await fetchUserProfile(data.id);
+      if (profile) {
+        setUser(profile);
+      } else {
+        setUser(authUserFromResponse(data.id, data.email, userData));
+      }
       setToken(data.token);
       if (data.token) localStorage.setItem(AUTH_TOKEN_KEY, data.token);
       return { success: true, error: '' };
@@ -121,9 +168,39 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     localStorage.removeItem(AUTH_TOKEN_KEY);
   };
 
-  const updateProfile = (userData: Partial<User>) => {
-    if (user) {
-      setUser({ ...user, ...userData });
+  const updateProfile = async (userData: Partial<User>): Promise<{ success: boolean; error?: string }> => {
+    if (!user?.id) return { success: false, error: 'No hay sesión' };
+    try {
+      const body: Record<string, unknown> = {
+        first_name: userData.firstName?.trim() ?? user.firstName,
+        last_name: userData.lastName?.trim() ?? user.lastName,
+        dni: userData.dni?.trim() ?? user.dni,
+        email: userData.email?.trim() ?? user.email,
+        phone: userData.phone?.trim() || null,
+      };
+      if (userData.birthDate !== undefined) body.birth_date = userData.birthDate?.trim() || null;
+      const res = await fetch(`${USER_SERVICE_URL}/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const message = data.detail ?? (res.status === 400 ? 'Error al actualizar' : 'Error en el servidor');
+        return { success: false, error: typeof message === 'string' ? message : message[0]?.msg ?? 'Error al actualizar' };
+      }
+      setUser({
+        ...user,
+        firstName: data.first_name ?? user.firstName,
+        lastName: data.last_name ?? user.lastName,
+        dni: data.dni ?? user.dni,
+        email: data.email ?? user.email,
+        phone: data.phone ?? user.phone ?? '',
+        birthDate: data.birth_date ?? user.birthDate ?? '',
+      });
+      return { success: true };
+    } catch {
+      return { success: false, error: 'No se pudo conectar con el servidor.' };
     }
   };
 
