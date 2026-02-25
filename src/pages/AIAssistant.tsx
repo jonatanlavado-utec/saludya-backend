@@ -25,12 +25,13 @@ const AIAssistant: React.FC = () => {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [GrokData, setGrokData] = useState({});
   const [aiState, setAiState] = useState<AiState>('idle');
   const [lastSuggestedSpecialtyIds, setLastSuggestedSpecialtyIds] = useState<string[]>([]);
   const [showDoctors, setShowDoctors] = useState(false);
   const [suggestedDoctors, setSuggestedDoctors] = useState<typeof doctors>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -101,11 +102,14 @@ const AIAssistant: React.FC = () => {
       }
 
       const data: {
+        id: string;
+        symptoms: string;
         recommended_specialty?: string;
         explanation?: string;
         comment?: string;
         inference_method?: string;
       } = await res.json();
+      setGrokData(data);
       const specialtyName: string = data.recommended_specialty ?? 'Medicina General';
 
       const spec = specialties.find(s => s.name === specialtyName);
@@ -204,14 +208,16 @@ const AIAssistant: React.FC = () => {
               <DoctorCard
                 key={doctor.id}
                 doctor={doctor}
-                onClick={() => navigate(`/book/datetime/${doctor.id}`)}
+                // onClick={() => navigate(`/book/datetime/${doctor.id}`)}
+                onClick={() => navigate(`/book/datetime/${doctor.id}${GrokData && 'id' in GrokData && GrokData.id ? `?from_ai=${GrokData.id}` : ''}`)}
               />
             ))}
             {lastSuggestedSpecialtyIds.length > 0 && (
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => navigate(`/book/doctor/${lastSuggestedSpecialtyIds[0]}`)}
+                // onClick={() => navigate(`/book/doctor/${lastSuggestedSpecialtyIds[0]}?from_ai=${GrokData?.id}`)}
+                onClick={() => navigate(`/book/doctor/${lastSuggestedSpecialtyIds[0]}${GrokData && 'id' in GrokData && GrokData.id ? `?from_ai=${GrokData.id}` : ''}`)}
               >
                 Ver todos los médicos de esta especialidad
               </Button>

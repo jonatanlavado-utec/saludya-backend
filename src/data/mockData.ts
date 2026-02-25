@@ -36,7 +36,7 @@ const generateTimeSlots = () => {
 
 export const doctors: Doctor[] = [
   {
-    id: '1',
+    id: 'e1a72605-6a58-47bc-9b6f-4770fc60f47e',
     name: 'Dra. María García López',
     specialty: 'Medicina General',
     specialtyId: '1',
@@ -47,7 +47,7 @@ export const doctors: Doctor[] = [
     availableSlots: generateTimeSlots(),
   },
   {
-    id: '2',
+    id: '4d98d28a-7517-4560-8438-66db00244675',
     name: 'Dr. Carlos Rodríguez Sánchez',
     specialty: 'Cardiología',
     specialtyId: '3',
@@ -58,7 +58,7 @@ export const doctors: Doctor[] = [
     availableSlots: generateTimeSlots(),
   },
   {
-    id: '3',
+    id: '78235213-9a3b-4819-863d-498c1cd81711',
     name: 'Dra. Ana Martínez Ruiz',
     specialty: 'Pediatría',
     specialtyId: '2',
@@ -69,7 +69,7 @@ export const doctors: Doctor[] = [
     availableSlots: generateTimeSlots(),
   },
   {
-    id: '4',
+    id: 'b863a3c9-0261-41bd-8c76-50851f5e27fb',
     name: 'Dr. Luis Fernández Torres',
     specialty: 'Dermatología',
     specialtyId: '4',
@@ -80,7 +80,7 @@ export const doctors: Doctor[] = [
     availableSlots: generateTimeSlots(),
   },
   {
-    id: '5',
+    id: 'f8a0322c-5690-4d57-8fb6-829d660e5b0b',
     name: 'Dra. Patricia Gómez Vega',
     specialty: 'Ginecología',
     specialtyId: '5',
@@ -91,7 +91,7 @@ export const doctors: Doctor[] = [
     availableSlots: generateTimeSlots(),
   },
   {
-    id: '6',
+    id: '2c8a705e-a89f-43b9-a417-2fb078b54203',
     name: 'Dr. Roberto Díaz Mendoza',
     specialty: 'Traumatología',
     specialtyId: '6',
@@ -102,7 +102,7 @@ export const doctors: Doctor[] = [
     availableSlots: generateTimeSlots(),
   },
   {
-    id: '7',
+    id: 'e0c5c678-5db6-4299-9730-1be66fbab6f2',
     name: 'Dra. Elena Castro Navarro',
     specialty: 'Neurología',
     specialtyId: '7',
@@ -113,7 +113,7 @@ export const doctors: Doctor[] = [
     availableSlots: generateTimeSlots(),
   },
   {
-    id: '8',
+    id: '11c42f02-cd6e-44dc-9d8d-bb35d21c3b1e',
     name: 'Dr. Miguel Herrera Blanco',
     specialty: 'Oftalmología',
     specialtyId: '8',
@@ -124,7 +124,7 @@ export const doctors: Doctor[] = [
     availableSlots: generateTimeSlots(),
   },
   {
-    id: '9',
+    id: 'c369fc6a-2f47-49a3-9a8c-9c98bc0eeb13',
     name: 'Dra. Laura Jiménez Ortega',
     specialty: 'Psicología',
     specialtyId: '9',
@@ -135,7 +135,7 @@ export const doctors: Doctor[] = [
     availableSlots: generateTimeSlots(),
   },
   {
-    id: '10',
+    id: '9f05e263-ea7c-4ab4-9721-3fc75fbfa9c7',
     name: 'Dr. Antonio Morales Prieto',
     specialty: 'Nutrición',
     specialtyId: '10',
@@ -144,30 +144,31 @@ export const doctors: Doctor[] = [
     price: 45,
     photoUrl: 'https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=200&h=200&fit=crop&crop=face',
     availableSlots: generateTimeSlots(),
-  },
+  }
 ];
+
 
 export const initialAppointments: Appointment[] = [
   {
     id: '1',
     doctor: doctors[0],
-    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    appointment_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     time: '10:00',
-    status: 'scheduled',
+    status: 'pending',
     symptoms: 'Dolor de cabeza frecuente',
   },
   {
     id: '2',
     doctor: doctors[2],
-    date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    appointment_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     time: '14:30',
-    status: 'scheduled',
+    status: 'pending',
     symptoms: 'Control pediátrico',
   },
   {
     id: '3',
     doctor: doctors[1],
-    date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    appointment_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     time: '09:00',
     status: 'completed',
     symptoms: 'Chequeo cardiovascular',
@@ -178,7 +179,7 @@ export const initialAppointments: Appointment[] = [
   {
     id: '4',
     doctor: doctors[3],
-    date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    appointment_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     time: '11:00',
     status: 'completed',
     symptoms: 'Manchas en la piel',

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSearchParams } from "react-router-dom";
 import { DoctorCard } from '@/components/doctor/DoctorCard';
 import { Button } from '@/components/ui/button';
 import { doctors } from '@/data/mockData';
@@ -9,6 +10,8 @@ import { cn } from '@/lib/utils';
 
 const SelectDateTime: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("from_ai");
   const { doctorId } = useParams<{ doctorId: string }>();
 
   const doctor = doctors.find(d => d.id === doctorId);

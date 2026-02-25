@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Appointment, Doctor, TimeSlot } from '@/types';
-import { initialAppointments } from '@/data/mockData';
+import { initialAppointments, doctors } from '@/data/mockData';
 
 // URL of reverse proxy, replace with EC2 public IP
 const PROXY_URL = import.meta.env.VITE_PROXY_URL || '';
 const AUTH_API_URL = `${PROXY_URL}/api/auth`;
 const USER_SERVICE_URL = `${PROXY_URL}/api/users`;
-const AI_API_URL = `${PROXY_URL}/api/ai`;
+const APPOINTMENT_SERVICE_URL = `${PROXY_URL}/api/appointments`;
+const PAYMENT_API_URL = `${PROXY_URL}/api/payments`;
 const AUTH_TOKEN_KEY = 'saludya_token';
 
 export type AuthResult = { success: boolean; error: string } ; 
@@ -22,8 +23,9 @@ interface AppContextType {
   register: (userData: Partial<User>, password: string) => Promise<AuthResult>;
   logout: () => void;
   updateProfile: (userData: Partial<User>) => Promise<{ success: boolean; error?: string }>;
-  bookAppointment: (doctor: Doctor, slot: TimeSlot, symptoms?: string) => void;
+  bookAppointment: (doctor: Doctor, slot: TimeSlot, symptoms?: string, payment_id?: string) => Promise<boolean>;
   cancelAppointment: (appointmentId: string) => void;
+  processPayment: (amount: number, cardInfo: { cardNumber: string; expiry: string; cvv: string; cardName: string }, doctor: Doctor, slot: TimeSlot, symptoms?: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -59,10 +61,38 @@ async function fetchUserProfile(userId: string): Promise<User | null> {
   }
 }
 
+async function fetchAppointments(userId: string): Promise<Appointment[]> {
+  try {
+    const res = await fetch(`${APPOINTMENT_SERVICE_URL}/user/${userId}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.map((item: any) => ({
+      id: String(item.id),
+      doctor: {
+        id: String(item.doctor_id),
+        name: doctors.find(doc => doc.id === String(item.doctor_id))?.name || item.doctor_name, 
+        photoUrl: doctors.find(doc => doc.id === String(item.doctor_id))?.photoUrl || '',
+        specialty: doctors.find(doc => doc.id === String(item.doctor_id))?.specialty || item.doctor_specialty,
+        rating: doctors.find(doc => doc.id === String(item.doctor_id))?.rating || item.doctor_rating,
+        experience: doctors.find(doc => doc.id === String(item.doctor_id))?.experience || item.doctor_experience,
+      },
+      appointment_date: item.appointment_date, // Keep full datetime for sorting and display
+      time: item.time,
+      status: item.status,
+      symptoms: item.symptoms,
+      diagnosis: item.diagnosis,
+      prescription: item.prescription,
+      notes: item.notes,
+    }));
+  } catch {
+    return [];
+  }  
+}
+
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [sessionRestored, setSessionRestored] = useState(false);
 
   useEffect(() => {
@@ -85,12 +115,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       .then(async (data) => {
         if (data?.id != null && data?.email != null) {
           const profile = await fetchUserProfile(data.id);
+          const newAppointments = await fetchAppointments(data.id)
+          setToken(storedToken);
+          setAppointments(newAppointments);
+
           if (profile) {
             setUser(profile);
           } else {
             setUser(authUserFromResponse(data.id, data.email));
           }
-          setToken(storedToken);
+
         }
         setSessionRestored(true);
       })
@@ -207,17 +241,76 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const bookAppointment = (doctor: Doctor, slot: TimeSlot, symptoms?: string) => {
-    const newAppointment: Appointment = {
-      id: Date.now().toString(),
-      doctor,
-      date: slot.date,
-      time: slot.time,
-      status: 'scheduled',
-      symptoms,
-    };
-    setAppointments(prev => [...prev, newAppointment]);
+  // update to call POST api "/create_appointment" that receives user_id, doctor_id, doctor_name, specialty_name, appointment_date, price, notes, payment_id
+  const bookAppointment = async (doctor: Doctor, slot: TimeSlot, symptoms?: string, payment_id?: string): Promise<boolean> => {
+    if (!user) return false;
+    try {
+
+      const body: Record<string, unknown> = {
+          user_id: user.id,
+          doctor_id: doctor.id,
+          doctor_name: doctor.name,
+          specialty_name: doctor.specialty,
+          appointment_date: `${slot.date} ${slot.time}`,
+          price: 50.1, // Simulated price
+          notes: symptoms || '',
+          payment_id: payment_id || null
+      }
+      const res = await fetch(`${APPOINTMENT_SERVICE_URL}/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      const newAppointment: Appointment = {
+        id: String(data.id),
+        doctor,
+        appointment_date: slot.date,
+        time: slot.time,
+        status: 'pending',
+        symptoms,
+      };
+      setAppointments(prev => [...prev, newAppointment]);
+      return true;
+    } catch {
+      return false;
+    }
   };
+
+  const processPayment = async (amount: number, cardInfo: { cardNumber: string; expiry: string; cvv: string; cardName: string }, doctor: Doctor, slot: TimeSlot, symptoms?: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const body = {
+        user_id: user.id,
+        amount,
+        card_number: cardInfo.cardNumber.replace(/\s/g, ''),
+        card_holder: cardInfo.cardName,
+        expiry_date: cardInfo.expiry,
+        cvv: cardInfo.cvv
+      };
+      const res = await fetch(`${PAYMENT_API_URL}/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const payment = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const message = payment.detail ?? 'Error en el procesamiento de pago';
+        return { success: false, error: typeof message === 'string' ? message : message[0]?.msg ?? 'Error en el procesamiento de pago' };
+      }
+      // Assuming the payment API returns a payment_id on success
+      const paymentId = payment.id;
+      
+      const bookingSuccess = await bookAppointment(doctor, slot, symptoms, paymentId);
+      if (!bookingSuccess) {
+        return { success: false, error: 'Pago procesado pero no se pudo reservar la cita, contactar a soporte.' };
+      }
+      return { success: true };
+    } catch {
+      return { success: false, error: 'No se pudo conectar con el servidor de pagos.' };
+    }
+  };
+
 
   const cancelAppointment = (appointmentId: string) => {
     setAppointments(prev =>
@@ -241,6 +334,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         updateProfile,
         bookAppointment,
         cancelAppointment,
+        processPayment,
       }}
     >
       {children}

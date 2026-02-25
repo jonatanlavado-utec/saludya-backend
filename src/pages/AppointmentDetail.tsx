@@ -24,12 +24,21 @@ const AppointmentDetail: React.FC = () => {
   }
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00');
+    const date = new Date(dateStr);
     return date.toLocaleDateString('es-ES', { 
       weekday: 'long', 
       day: 'numeric', 
       month: 'long',
       year: 'numeric'
+    });
+  };
+
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false // Set to true if you want 09:00 AM instead of 09:00
     });
   };
 
@@ -98,7 +107,7 @@ const AppointmentDetail: React.FC = () => {
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Fecha</p>
-            <p className="font-medium">{formatDate(appointment.date)}</p>
+            <p className="font-medium">{formatDate(appointment.appointment_date)}</p>
           </div>
         </div>
 
@@ -108,7 +117,7 @@ const AppointmentDetail: React.FC = () => {
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Hora</p>
-            <p className="font-medium">{appointment.time}</p>
+            <p className="font-medium">{formatTime(appointment.appointment_date)}</p>
           </div>
         </div>
 
@@ -164,7 +173,7 @@ const AppointmentDetail: React.FC = () => {
       )}
 
       {/* Actions */}
-      {appointment.status === 'scheduled' && (
+      {appointment.status === 'pending' && (
         <Button 
           variant="outline" 
           className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
