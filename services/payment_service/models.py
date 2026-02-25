@@ -6,10 +6,10 @@ from datetime import datetime
 import enum
 
 class PaymentStatus(enum.Enum):
-    PENDING = "pending"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    REFUNDED = "refunded"
+    PENDING = "PENDING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    REFUNDED = "REFUNDED"
 
 class Payment(Base):
     __tablename__ = "payments"
@@ -17,11 +17,10 @@ class Payment(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
-    appointment_id = Column(UUID(as_uuid=True), nullable=False)
     amount = Column(Float, nullable=False)
     card_last_four = Column(String, nullable=False)
     card_type = Column(String, nullable=False)
-    status = Column(SQLEnum(PaymentStatus), default=PaymentStatus.PENDING)
+    status = Column(String, default=PaymentStatus.PENDING.value)
     transaction_id = Column(String, nullable=False, unique=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

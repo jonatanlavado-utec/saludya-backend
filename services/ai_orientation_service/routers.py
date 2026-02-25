@@ -113,25 +113,27 @@ def classify_with_groq(symptoms: str) -> str:
     
     resp.raise_for_status()
     data = resp.json()
-    ### print('data', data)
 
-    # chat response uses choices[0].message.content
-    msg = data.get("choices", [{}])[0].get("message", {})
-    return msg.strip()
-
+    raw_content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+    cleaned_string = raw_content.strip('` \n').removeprefix('json').strip()
+    cls = json.loads(cleaned_string) if cleaned_string else {}
+    return cls
 
 def analyze_symptoms(symptoms: str) -> tuple:
     # First attempt classification via the external Groq model.
     ai_comment = ""
     try:
         raw = classify_with_groq(symptoms)
-    except Exception:
+    except Exception as err:
         raw = None
 
-    if raw:
+    if raw != {} or raw is not None:
         # try to interpret the model output as JSON
         try:
-            cls = json.loads(raw)
+            if isinstance(raw, str):
+                cls = json.loads(raw)
+            else:
+                cls = raw
         except ValueError:
             cls = {"specialty": raw}
         if not isinstance(cls, dict):

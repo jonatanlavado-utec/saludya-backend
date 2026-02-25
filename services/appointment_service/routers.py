@@ -50,7 +50,7 @@ def create_appointment(
         specialty_name=doctor["specialty_name"],
         appointment_date=appointment.appointment_date,
         price=appointment.price,
-        status=AppointmentStatus.CONFIRMED,
+        status=AppointmentStatus.PENDING,
         payment_id=appointment.payment_id,
         notes=appointment.notes
     )

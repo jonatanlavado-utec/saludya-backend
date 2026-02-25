@@ -6,7 +6,7 @@ from schemas import PaymentRequest, PaymentResponse
 from uuid import UUID
 import secrets
 import random
-from service_clients import UserServiceClient, AppointmentServiceClient
+from service_clients import UserServiceClient
 
 payment_router = APIRouter()
 
@@ -14,9 +14,6 @@ payment_router = APIRouter()
 def get_user_client() -> UserServiceClient:
     return UserServiceClient()
 
-
-def get_appointment_client() -> AppointmentServiceClient:
-    return AppointmentServiceClient()
 
 
 def detect_card_type(card_number: str) -> str:
@@ -39,21 +36,13 @@ def simulate_payment_processing() -> bool:
 def process_payment(
     payment_request: PaymentRequest,
     db: Session = Depends(get_db),
-    user_client: UserServiceClient = Depends(get_user_client),
-    appointment_client: AppointmentServiceClient = Depends(get_appointment_client)
+    user_client: UserServiceClient = Depends(get_user_client)
 ):
     # Validate user exists via User Service API
     if not user_client.user_exists(payment_request.user_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User not found. Please provide a valid user ID."
-        )
-
-    # Validate appointment exists via Appointment Service API
-    if not appointment_client.appointment_exists(payment_request.appointment_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Appointment not found. Please provide a valid appointment ID."
         )
 
     card_number_clean = payment_request.card_number.replace(' ', '').replace('-', '')
@@ -66,12 +55,11 @@ def process_payment(
 
     new_payment = Payment(
         user_id=payment_request.user_id,
-        appointment_id=payment_request.appointment_id,
         amount=payment_request.amount,
         card_last_four=card_last_four,
         card_type=card_type,
         transaction_id=transaction_id,
-        status=PaymentStatus.COMPLETED if payment_successful else PaymentStatus.FAILED
+        status=PaymentStatus.COMPLETED.value if payment_successful else PaymentStatus.FAILED.value
     )
 
     db.add(new_payment)
@@ -87,11 +75,10 @@ def process_payment(
     return PaymentResponse(
         id=new_payment.id,
         user_id=new_payment.user_id,
-        appointment_id=new_payment.appointment_id,
         amount=new_payment.amount,
         card_last_four=new_payment.card_last_four,
         card_type=new_payment.card_type,
-        status=new_payment.status.value,
+        status=new_payment.status,
         transaction_id=new_payment.transaction_id,
         created_at=new_payment.created_at,
         message="Payment processed successfully"
@@ -110,7 +97,6 @@ def get_payment(payment_id: UUID, db: Session = Depends(get_db)):
     return PaymentResponse(
         id=payment.id,
         user_id=payment.user_id,
-        appointment_id=payment.appointment_id,
         amount=payment.amount,
         card_last_four=payment.card_last_four,
         card_type=payment.card_type,

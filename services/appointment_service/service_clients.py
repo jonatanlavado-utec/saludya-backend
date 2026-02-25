@@ -43,7 +43,7 @@ class UserServiceClient(ServiceClient):
 
     def get_user(self, user_id: UUID) -> Optional[dict]:
         """Get user by ID. Returns None if user not found."""
-        return self.get(f"/users/{user_id}")
+        return self.get(f"/{user_id}")
 
     def user_exists(self, user_id: UUID) -> bool:
         """Check if a user exists."""

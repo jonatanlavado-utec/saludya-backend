@@ -1,7 +1,5 @@
 -- Appointment Service Tables
 
-CREATE TYPE appointment_service.appointment_status AS ENUM ('pending', 'confirmed', 'cancelled', 'completed');
-
 CREATE TABLE IF NOT EXISTS appointment_service.appointments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
@@ -10,7 +8,7 @@ CREATE TABLE IF NOT EXISTS appointment_service.appointments (
     specialty_name VARCHAR(255) NOT NULL,
     appointment_date TIMESTAMP NOT NULL,
     price FLOAT NOT NULL,
-    status appointment_service.appointment_status DEFAULT 'pending',
+    status VARCHAR(50) DEFAULT 'pending',
     payment_id UUID NULL,
     notes TEXT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
