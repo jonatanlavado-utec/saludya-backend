@@ -24,7 +24,7 @@ interface AppContextType {
   logout: () => void;
   updateProfile: (userData: Partial<User>) => Promise<{ success: boolean; error?: string }>;
   bookAppointment: (doctor: Doctor, slot: TimeSlot, symptoms?: string, payment_id?: string) => Promise<boolean>;
-  cancelAppointment: (appointmentId: string) => void;
+  cancelAppointment: (appointmentId: string) => Promise<void>;
   processPayment: (amount: number, cardInfo: { cardNumber: string; expiry: string; cvv: string; cardName: string }, doctor: Doctor, slot: TimeSlot, symptoms?: string) => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -252,7 +252,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           doctor_name: doctor.name,
           specialty_name: doctor.specialty,
           appointment_date: `${slot.date} ${slot.time}`,
-          price: 50.1, // Simulated price
+          price: doctor.price, // Simulated price
           notes: symptoms || '',
           payment_id: payment_id || null
       }
@@ -311,13 +311,48 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const cancelAPIappointment = async (appointmentId: string): Promise<Appointment | null> => {
+    try {
+      const res = await fetch(`${APPOINTMENT_SERVICE_URL}/${appointmentId}/cancel`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return {
+        id: String(data.id),
+        doctor: {
+          id: String(data.doctor_id),
+          name: doctors.find(doc => doc.id === String(data.doctor_id))?.name || data.doctor_name,
+          photoUrl: doctors.find(doc => doc.id === String(data.doctor_id))?.photoUrl || '',
+          specialty: doctors.find(doc => doc.id === String(data.doctor_id))?.specialty || data.doctor_specialty,
+          rating: doctors.find(doc => doc.id === String(data.doctor_id))?.rating || data.doctor_rating,
+          experience: doctors.find(doc => doc.id === String(data.doctor_id))?.experience || data.doctor_experience,
+          specialtyId: '',
+          price: 0,
+        },
+        appointment_date: data.appointment_date,
+        time: data.time,
+        status: data.status,
+        symptoms: data.symptoms,
+        diagnosis: data.diagnosis,
+        prescription: data.prescription,
+        notes: data.notes,
+      };
+    } catch {
+      return null;
+    }   
+  };
 
-  const cancelAppointment = (appointmentId: string) => {
-    setAppointments(prev =>
-      prev.map(apt =>
-        apt.id === appointmentId ? { ...apt, status: 'cancelled' } : apt
-      )
-    );
+  const cancelAppointment = async (appointmentId: string): Promise<void> => {
+    const updatedAppointment = await cancelAPIappointment(appointmentId);
+    if (updatedAppointment) {
+      setAppointments(prev =>
+        prev.map(apt =>
+          apt.id === appointmentId ? updatedAppointment : apt
+        )
+      );
+    }
   };
 
   return (

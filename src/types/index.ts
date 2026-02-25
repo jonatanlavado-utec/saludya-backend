@@ -18,7 +18,7 @@ export interface Doctor {
   experience: number;
   price: number;
   photoUrl: string;
-  availableSlots: TimeSlot[];
+  availableSlots?: TimeSlot[];
 }
 
 export interface Specialty {
