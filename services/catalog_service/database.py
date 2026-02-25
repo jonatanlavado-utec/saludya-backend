@@ -28,16 +28,16 @@ def seed_data():
 
     if db.query(Specialty).count() == 0:
         specialties = [
-            Specialty(name="Cardiología", description="Especialista en corazón y sistema cardiovascular"),
-            Specialty(name="Pediatría", description="Especialista en salud infantil"),
-            Specialty(name="Dermatología", description="Especialista en piel y tejidos relacionados"),
-            Specialty(name="Medicina General", description="Atención médica general"),
-            Specialty(name="Psicología", description="Especialista en salud mental"),
-            Specialty(name="Traumatología", description="Especialista en huesos, músculos y articulaciones"),
-            Specialty(name="Ginecología", description="Especialista en salud femenina"),
-            Specialty(name="Oftalmología", description="Especialista en ojos y visión"),
-            Specialty(name="Neurología", description="Especialista en sistema nervioso"),
-            Specialty(name="Nutrición", description="Especialista en alimentación y dieta"),
+            Specialty(id="b897c291-3ca0-44b6-a376-1fb13e2dda4c", name="Medicina General", description="Atención médica general"),
+            Specialty(id="9d9dc434-a2bc-4a5a-9867-b9dc514c4e2d", name="Cardiología", description="Especialista en corazón y sistema cardiovascular"),
+            Specialty(id="4d309499-1286-4869-ad20-a336f1eece37", name="Pediatría", description="Especialista en salud infantil"),
+            Specialty(id="5955b0a7-1351-4991-84c1-04836a24da72", name="Dermatología", description="Especialista en piel y tejidos relacionados"),
+            Specialty(id="2a73e4aa-21ca-4cd1-89f9-6de7bd0d851b", name="Ginecología", description="Especialista en salud femenina"),
+            Specialty(id="6b73299b-0b43-44f8-9340-751aa8b0c089", name="Traumatología", description="Especialista en huesos, músculos y articulaciones"),
+            Specialty(id="e94b5251-a759-4a48-bba5-5eaf777e4aac", name="Neurología", description="Especialista en sistema nervioso"),
+            Specialty(id="c4e78714-f890-4e8d-890b-aff96ae39529", name="Oftalmología", description="Especialista en ojos y visión"),
+            Specialty(id="6052bdea-3ddd-4512-afb9-e36b87238cbe", name="Psicología", description="Especialista en salud mental"),
+            Specialty(id="80217568-4d6d-4021-90f3-20a951a3172d", name="Nutrición", description="Especialista en alimentación y dieta"),
         ]
         db.add_all(specialties)
         db.commit()
@@ -46,16 +46,16 @@ def seed_data():
             db.refresh(specialty)
 
         doctors_data = [
-            {"id": "e1a72605-6a58-47bc-9b6f-4770fc60f47e", "name": "Dra. María García López", "specialty_id": specialties[0].id, "rating": 4.9, "experience_years": 15, "price": 50.0, "photo_url": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop&crop=face"},
-            {"id": "4d98d28a-7517-4560-8438-66db00244675", "name": "Dr. Carlos Rodríguez Sánchez", "specialty_id": specialties[2].id, "rating": 4.8, "experience_years": 20, "price": 80.0, "photo_url": "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop&crop=face"},
-            {"id": "78235213-9a3b-4819-863d-498c1cd81711", "name": "Dra. Ana Martínez Ruiz", "specialty_id": specialties[1].id, "rating": 4.95, "experience_years": 12, "price": 60.0, "photo_url": "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&h=200&fit=crop&crop=face"},
-            {"id": "b863a3c9-0261-41bd-8c76-50851f5e27fb", "name": "Dr. Luis Fernández Torres", "specialty_id": specialties[3].id, "rating": 4.7, "experience_years": 8, "price": 70.0, "photo_url": "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop&crop=face"},
-            {"id": "f8a0322c-5690-4d57-8fb6-829d660e5b0b", "name": "Dra. Patricia Gómez Vega", "specialty_id": specialties[4].id, "rating": 4.85, "experience_years": 18, "price": 75.0, "photo_url": "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=200&h=200&fit=crop&crop=face"},
-            {"id": "2c8a705e-a89f-43b9-a417-2fb078b54203", "name": "Dr. Roberto Díaz Mendoza", "specialty_id": specialties[5].id, "rating": 4.6, "experience_years": 22, "price": 85.0, "photo_url": "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&h=200&fit=crop&crop=face"},
-            {"id": "e0c5c678-5db6-4299-9730-1be66fbab6f2", "name": "Dra. Elena Castro Navarro", "specialty_id": specialties[6].id, "rating": 4.9, "experience_years": 16, "price": 90.0, "photo_url": "https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=200&h=200&fit=crop&crop=face"},
-            {"id": "11c42f02-cd6e-44dc-9d8d-bb35d21c3b1e", "name": "Dr. Miguel Herrera Blanco", "specialty_id": specialties[7].id, "rating": 4.75, "experience_years": 14, "price": 65.0, "photo_url": "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&h=200&fit=crop&crop=face"},
-            {"id": "c369fc6a-2f47-49a3-9a8c-9c98bc0eeb13", "name": "Dra. Laura Jiménez Ortega", "specialty_id": specialties[8].id, "rating": 4.92, "experience_years": 10, "price": 55.0, "photo_url": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face"},
-            {"id": "9f05e263-ea7c-4ab4-9721-3fc75fbfa9c7", "name": "Dr. Antonio Morales Prieto", "specialty_id": specialties[9].id, "rating": 4.8, "experience_years": 7, "price": 45.0, "photo_url": "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=200&h=200&fit=crop&crop=face"}
+            {"id": "e1a72605-6a58-47bc-9b6f-4770fc60f47e", "name": "Dra. María García López", "specialty_id": "b897c291-3ca0-44b6-a376-1fb13e2dda4c", "rating": 4.9, "experience_years": 15, "price": 50.0, "photo_url": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop&crop=face"},
+            {"id": "4d98d28a-7517-4560-8438-66db00244675", "name": "Dr. Carlos Rodríguez Sánchez", "specialty_id": "9d9dc434-a2bc-4a5a-9867-b9dc514c4e2d", "rating": 4.8, "experience_years": 20, "price": 80.0, "photo_url": "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&fit=crop&crop=face"},
+            {"id": "78235213-9a3b-4819-863d-498c1cd81711", "name": "Dra. Ana Martínez Ruiz", "specialty_id": "4d309499-1286-4869-ad20-a336f1eece37", "rating": 4.95, "experience_years": 12, "price": 60.0, "photo_url": "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&h=200&fit=crop&crop=face"},
+            {"id": "b863a3c9-0261-41bd-8c76-50851f5e27fb", "name": "Dr. Luis Fernández Torres", "specialty_id": "5955b0a7-1351-4991-84c1-04836a24da72", "rating": 4.7, "experience_years": 8, "price": 70.0, "photo_url": "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&h=200&fit=crop&crop=face"},
+            {"id": "f8a0322c-5690-4d57-8fb6-829d660e5b0b", "name": "Dra. Patricia Gómez Vega", "specialty_id": "2a73e4aa-21ca-4cd1-89f9-6de7bd0d851b", "rating": 4.85, "experience_years": 18, "price": 75.0, "photo_url": "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=200&h=200&fit=crop&crop=face"},
+            {"id": "2c8a705e-a89f-43b9-a417-2fb078b54203", "name": "Dr. Roberto Díaz Mendoza", "specialty_id": "6b73299b-0b43-44f8-9340-751aa8b0c089", "rating": 4.6, "experience_years": 22, "price": 85.0, "photo_url": "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&h=200&fit=crop&crop=face"},
+            {"id": "e0c5c678-5db6-4299-9730-1be66fbab6f2", "name": "Dra. Elena Castro Navarro", "specialty_id": "e94b5251-a759-4a48-bba5-5eaf777e4aac", "rating": 4.9, "experience_years": 16, "price": 90.0, "photo_url": "https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=200&h=200&fit=crop&crop=face"},
+            {"id": "11c42f02-cd6e-44dc-9d8d-bb35d21c3b1e", "name": "Dr. Miguel Herrera Blanco", "specialty_id": "c4e78714-f890-4e8d-890b-aff96ae39529", "rating": 4.75, "experience_years": 14, "price": 65.0, "photo_url": "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&h=200&fit=crop&crop=face"},
+            {"id": "c369fc6a-2f47-49a3-9a8c-9c98bc0eeb13", "name": "Dra. Laura Jiménez Ortega", "specialty_id": "6052bdea-3ddd-4512-afb9-e36b87238cbe", "rating": 4.92, "experience_years": 10, "price": 55.0, "photo_url": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face"},
+            {"id": "9f05e263-ea7c-4ab4-9721-3fc75fbfa9c7", "name": "Dr. Antonio Morales Prieto", "specialty_id": "80217568-4d6d-4021-90f3-20a951a3172d", "rating": 4.8, "experience_years": 7, "price": 45.0, "photo_url": "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?w=200&h=200&fit=crop&crop=face"}
         ]
 
         doctors = [Doctor(**doc_data) for doc_data in doctors_data]
