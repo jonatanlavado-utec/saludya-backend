@@ -12,7 +12,7 @@ import { ArrowLeft, CreditCard, Calendar, Clock, CheckCircle } from 'lucide-reac
 const Payment: React.FC = () => {
   const navigate = useNavigate();
   const { doctorId, slotId } = useParams<{ doctorId: string; slotId: string }>();
-  const { bookAppointment } = useApp();
+  const { processPayment } = useApp();
 
   const doctor = doctors.find(d => d.id === doctorId);
   const slot = doctor?.availableSlots.find(s => s.id === slotId);
@@ -58,7 +58,7 @@ const Payment: React.FC = () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     if (doctor && slot) {
-      bookAppointment(doctor, slot, symptoms);
+      processPayment(doctor.price, { cardNumber, expiry, cvv, cardName }, doctor, slot, symptoms);
     }
 
     setLoading(false);

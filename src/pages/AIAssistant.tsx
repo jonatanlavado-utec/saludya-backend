@@ -5,8 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DoctorCard } from '@/components/doctor/DoctorCard';
 import { ChatMessage } from '@/types';
-import { symptomSpecialtyMap, specialties, doctors } from '@/data/mockData';
+import { specialties, doctors } from '@/data/mockData';
 import { cn } from '@/lib/utils';
+
+// API endpoint for AI service
+const AI_API_URL = `${import.meta.env.VITE_PROXY_URL || ''}/api/ai`;
 
 type AiState = 'idle' | 'awaiting_doctor_choice';
 
@@ -22,12 +25,13 @@ const AIAssistant: React.FC = () => {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [GrokData, setGrokData] = useState({});
   const [aiState, setAiState] = useState<AiState>('idle');
   const [lastSuggestedSpecialtyIds, setLastSuggestedSpecialtyIds] = useState<string[]>([]);
   const [showDoctors, setShowDoctors] = useState(false);
   const [suggestedDoctors, setSuggestedDoctors] = useState<typeof doctors>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -35,18 +39,6 @@ const AIAssistant: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, showDoctors]);
-
-  const findSpecialty = (text: string): string[] => {
-    const lowerText = text.toLowerCase();
-    const matched = new Set<string>();
-    for (const [keyword, specs] of Object.entries(symptomSpecialtyMap)) {
-      if (lowerText.includes(keyword)) {
-        specs.forEach(s => matched.add(s));
-      }
-    }
-    if (matched.size === 0) matched.add('Medicina General');
-    return Array.from(matched);
-  };
 
   const addAiMessage = (text: string) => {
     setMessages(prev => [...prev, {
@@ -71,10 +63,9 @@ const AIAssistant: React.FC = () => {
     setIsTyping(true);
     setShowDoctors(false);
 
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    setIsTyping(false);
-
     if (aiState === 'awaiting_doctor_choice') {
+      // Follow-up flow: user deciding whether to see doctors
+      await new Promise(resolve => setTimeout(resolve, 600));
       const lower = userText.toLowerCase();
       if (lower.includes('sí') || lower.includes('si') || lower.includes('ver') || lower.includes('mostrar') || lower.includes('ok')) {
         const matched = doctors.filter(d => lastSuggestedSpecialtyIds.includes(d.specialtyId));
@@ -90,23 +81,62 @@ const AIAssistant: React.FC = () => {
         addAiMessage('Entendido. Si necesitas ayuda con otros síntomas, ¡cuéntame!');
         setAiState('idle');
       }
+      setIsTyping(false);
       return;
     }
 
-    // Normal symptom flow
-    const suggestedNames = findSpecialty(userText);
-    const specDetails = suggestedNames
-      .map(name => specialties.find(s => s.name === name))
-      .filter(Boolean);
+    // Normal symptom flow: delegate analysis to backend AI Orientation service
+    try {
+      // Use API URL constant instead of hardcoded path
+      const res = await fetch(`${AI_API_URL}/orient`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symptoms: userText }),
+      });
 
-    setLastSuggestedSpecialtyIds(specDetails.map(s => s!.id));
+      if (!res.ok) {
+        addAiMessage('Ahora mismo no puedo analizar tus síntomas. Inténtalo de nuevo en unos momentos.');
+        setAiState('idle');
+        setIsTyping(false);
+        return;
+      }
 
-    let responseText = `Basándome en tus síntomas, te recomiendo consultar con:\n\n`;
-    suggestedNames.forEach(spec => { responseText += `• **${spec}**\n`; });
-    responseText += `\n¿Te gustaría ver los médicos disponibles para esta especialidad?`;
+      const data: {
+        id: string;
+        symptoms: string;
+        recommended_specialty?: string;
+        explanation?: string;
+        comment?: string;
+        inference_method?: string;
+      } = await res.json();
+      setGrokData(data);
+      const specialtyName: string = data.recommended_specialty ?? 'Medicina General';
 
-    addAiMessage(responseText);
-    setAiState('awaiting_doctor_choice');
+      const spec = specialties.find(s => s.name === specialtyName);
+      if (spec) {
+        setLastSuggestedSpecialtyIds([spec.id]);
+      } else {
+        setLastSuggestedSpecialtyIds([]);
+      }
+
+      let responseText = `Basándome en tus síntomas, te recomiendo consultar con:\n\n`;
+      responseText += `• **${specialtyName}**\n`;
+      if (data.explanation) {
+        responseText += `\n${data.explanation}\n`;
+      }
+      if (data.comment) {
+        responseText += `\nNota: ${data.comment}\n`;
+      }
+      responseText += `\n¿Te gustaría ver los médicos disponibles para esta especialidad?`;
+
+      addAiMessage(responseText);
+      setAiState('awaiting_doctor_choice');
+    } catch {
+      addAiMessage('Ha ocurrido un error al conectar con el asistente. Por favor, inténtalo nuevamente.');
+      setAiState('idle');
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -178,14 +208,16 @@ const AIAssistant: React.FC = () => {
               <DoctorCard
                 key={doctor.id}
                 doctor={doctor}
-                onClick={() => navigate(`/book/datetime/${doctor.id}`)}
+                // onClick={() => navigate(`/book/datetime/${doctor.id}`)}
+                onClick={() => navigate(`/book/datetime/${doctor.id}${GrokData && 'id' in GrokData && GrokData.id ? `?from_ai=${GrokData.id}` : ''}`)}
               />
             ))}
             {lastSuggestedSpecialtyIds.length > 0 && (
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => navigate(`/book/doctor/${lastSuggestedSpecialtyIds[0]}`)}
+                // onClick={() => navigate(`/book/doctor/${lastSuggestedSpecialtyIds[0]}?from_ai=${GrokData?.id}`)}
+                onClick={() => navigate(`/book/doctor/${lastSuggestedSpecialtyIds[0]}${GrokData && 'id' in GrokData && GrokData.id ? `?from_ai=${GrokData.id}` : ''}`)}
               >
                 Ver todos los médicos de esta especialidad
               </Button>

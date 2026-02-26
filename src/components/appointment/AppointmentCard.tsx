@@ -12,13 +12,24 @@ interface AppointmentCardProps {
 }
 
 const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr + 'T00:00:00');
+  const date = new Date(dateStr);
   return date.toLocaleDateString('es-ES', { 
     weekday: 'short', 
     day: 'numeric', 
     month: 'short' 
   });
 };
+
+const formatTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  
+  return date.toLocaleTimeString('es-ES', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false // Set to true if you want 09:00 AM instead of 09:00
+  });
+};
+
 
 export const AppointmentCard: React.FC<AppointmentCardProps> = ({ 
   appointment, 
@@ -27,13 +38,13 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   showCancelButton = false
 }) => {
   const statusColors = {
-    scheduled: 'bg-primary/10 text-primary',
+    pending: 'bg-primary/10 text-primary',
     completed: 'bg-success/10 text-success',
     cancelled: 'bg-destructive/10 text-destructive',
   };
 
   const statusLabels = {
-    scheduled: 'Programada',
+    pending: 'Programada',
     completed: 'Completada',
     cancelled: 'Cancelada',
   };
@@ -66,17 +77,17 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
           <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              <span>{formatDate(appointment.date)}</span>
+              <span>{formatDate(appointment.appointment_date)}</span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              <span>{appointment.time}</span>
+              <span>{formatTime(appointment.appointment_date)}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {showCancelButton && appointment.status === 'scheduled' && onCancel && (
+      {showCancelButton && appointment.status === 'pending' && onCancel && (
         <div className="mt-4 pt-4 border-t border-border">
           <Button 
             variant="outline" 

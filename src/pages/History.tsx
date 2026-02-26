@@ -11,7 +11,7 @@ const History: React.FC = () => {
 
   const pastAppointments = appointments
     .filter(apt => apt.status === 'completed' || apt.status === 'cancelled')
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime());
 
   return (
     <div className="space-y-6 animate-slide-up">

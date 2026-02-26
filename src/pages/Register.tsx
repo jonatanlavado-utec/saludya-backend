@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,14 @@ import { Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
-  const { register } = useApp();
+  const { register, isAuthenticated, sessionRestored } = useApp();
+
+  useEffect(() => {
+    if (sessionRestored && isAuthenticated) {
+      navigate('/home', { replace: true });
+    }
+  }, [sessionRestored, isAuthenticated, navigate]);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -28,12 +35,20 @@ const Register: React.FC = () => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  if (!sessionRestored || (sessionRestored && isAuthenticated)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <LoadingSpinner className="border-primary/30 border-t-primary" />
+      </div>
+    );
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
-      setError('Por favor completa los campos obligatorios');
+    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.dni?.trim()) {
+      setError('Por favor completa los campos obligatorios (nombre, apellidos, email, DNI, contraseña)');
       return;
     }
 
@@ -48,13 +63,13 @@ const Register: React.FC = () => {
     }
 
     setLoading(true);
-    const success = await register(formData, formData.password);
+    const result = await register(formData, formData.password);
     setLoading(false);
 
-    if (success) {
+    if (result.success) {
       navigate('/home');
     } else {
-      setError('Error al registrar. Intenta de nuevo.');
+      setError(result.error);
     }
   };
 

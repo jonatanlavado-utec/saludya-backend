@@ -60,14 +60,21 @@ const Profile: React.FC = () => {
   const handleSave = async () => {
     if (!validate()) return;
     setSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    updateProfile(formData);
+    const result = await updateProfile(formData);
     setSaving(false);
-    setEditing(false);
-    toast({
-      title: '¡Perfil actualizado!',
-      description: 'Tus datos se han guardado correctamente.',
-    });
+    if (result.success) {
+      setEditing(false);
+      toast({
+        title: '¡Perfil actualizado!',
+        description: 'Tus datos se han guardado correctamente.',
+      });
+    } else {
+      toast({
+        title: 'Error al guardar',
+        description: result.error ?? 'No se pudo actualizar el perfil.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleLogout = () => {
@@ -149,7 +156,7 @@ const Profile: React.FC = () => {
             type="email"
             value={formData.email}
             onChange={handleChange}
-            disabled={!editing}
+            disabled={true}
             className={errors.email ? 'border-destructive' : ''}
           />
           {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}

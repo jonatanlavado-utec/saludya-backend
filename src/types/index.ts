@@ -18,7 +18,7 @@ export interface Doctor {
   experience: number;
   price: number;
   photoUrl: string;
-  availableSlots: TimeSlot[];
+  availableSlots?: TimeSlot[];
 }
 
 export interface Specialty {
@@ -38,9 +38,9 @@ export interface TimeSlot {
 export interface Appointment {
   id: string;
   doctor: Doctor;
-  date: string;
+  appointment_date: string;
   time: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   symptoms?: string;
   diagnosis?: string;
   prescription?: string;

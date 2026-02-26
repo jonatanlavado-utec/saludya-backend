@@ -22,11 +22,9 @@ const Appointments: React.FC = () => {
   const { appointments, cancelAppointment } = useApp();
 
   const upcomingAppointments = appointments
-    .filter(apt => apt.status === 'scheduled' || apt.status === 'cancelled')
+    .filter(apt => apt.status !== 'cancelled' && apt.status !== 'completed')
     .sort((a, b) => {
-      if (a.status === 'scheduled' && b.status !== 'scheduled') return -1;
-      if (a.status !== 'scheduled' && b.status === 'scheduled') return 1;
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
+      return new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime();
     });
 
   return (
@@ -58,7 +56,7 @@ const Appointments: React.FC = () => {
                 appointment={appointment}
                 onClick={() => navigate(`/appointment/${appointment.id}`)}
               />
-              {appointment.status === 'scheduled' && (
+              {appointment.status === 'pending' && (
                 <div className="mt-2 px-4">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
