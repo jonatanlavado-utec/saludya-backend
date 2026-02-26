@@ -8,7 +8,7 @@ from datetime import datetime
 
 user_router = APIRouter()
 
-@user_router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@user_router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     existing_email = db.query(User).filter(User.email == user.email).first()
     if existing_email:
@@ -24,7 +24,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
             detail="DNI already registered"
         )
 
-    new_user = User(**user.model_dump())
+    data = user.model_dump()
+    if data.get("id") is None:
+        del data["id"]
+    new_user = User(**data)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

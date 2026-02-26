@@ -13,4 +13,6 @@ class OrientationQuery(Base):
     symptoms = Column(Text, nullable=False)
     recommended_specialty = Column(String, nullable=False)
     confidence = Column(String, nullable=False)
+    inference_method = Column(String, nullable=False, default="logic")  # 'ai' or 'logic'
+    comment = Column(Text, nullable=False, default="")
     created_at = Column(DateTime, default=datetime.utcnow)

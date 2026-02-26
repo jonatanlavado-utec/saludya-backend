@@ -6,7 +6,6 @@ import re
 
 class PaymentRequest(BaseModel):
     user_id: UUID
-    appointment_id: UUID
     amount: float
     card_number: str
     card_holder: str
@@ -35,7 +34,6 @@ class PaymentRequest(BaseModel):
 class PaymentResponse(BaseModel):
     id: UUID
     user_id: UUID
-    appointment_id: UUID
     amount: float
     card_last_four: str
     card_type: str

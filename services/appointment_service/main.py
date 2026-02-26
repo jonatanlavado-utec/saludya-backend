@@ -17,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(appointment_router, prefix="/appointments", tags=["Appointments"])
+app.include_router(appointment_router, tags=["Appointments"])
 
 @app.on_event("startup")
 async def startup():

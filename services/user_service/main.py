@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import user_router
 from database import create_tables
+import uvicorn
 
 app = FastAPI(
     title="SaludYa User Service",
@@ -17,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(user_router, prefix="/users", tags=["Users"])
+app.include_router(user_router, tags=["Users"])
 
 @app.on_event("startup")
 async def startup():
@@ -28,5 +29,5 @@ def read_root():
     return {"service": "SaludYa User Service", "status": "running"}
 
 if __name__ == "__main__":
-    import uvicorn
+    
     uvicorn.run(app, host="0.0.0.0", port=8002)

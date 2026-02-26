@@ -38,12 +38,12 @@ class UserServiceClient(ServiceClient):
 
     def __init__(self, base_url: str = None):
         import os
-        base_url = base_url or os.getenv("USER_SERVICE_URL", "http://user-service:8002")
+        base_url = base_url or os.getenv("USER_SERVICE_URL", "http://proxy/api/users/")
         super().__init__(base_url)
 
     def get_user(self, user_id: UUID) -> Optional[dict]:
         """Get user by ID. Returns None if user not found."""
-        return self.get(f"/users/{user_id}")
+        return self.get(f"/{user_id}")
 
     def user_exists(self, user_id: UUID) -> bool:
         """Check if a user exists."""
@@ -55,7 +55,7 @@ class CatalogServiceClient(ServiceClient):
 
     def __init__(self, base_url: str = None):
         import os
-        base_url = base_url or os.getenv("CATALOG_SERVICE_URL", "http://catalog-service:8003")
+        base_url = base_url or os.getenv("CATALOG_SERVICE_URL", "http://proxy/api/catalog/")
         super().__init__(base_url)
 
     def get_doctor(self, doctor_id: UUID) -> Optional[dict]:

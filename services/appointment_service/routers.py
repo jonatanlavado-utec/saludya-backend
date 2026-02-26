@@ -19,7 +19,7 @@ def get_catalog_client() -> CatalogServiceClient:
     return CatalogServiceClient()
 
 
-@appointment_router.post("", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)
+@appointment_router.post("/", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)
 def create_appointment(
     appointment: AppointmentCreate,
     db: Session = Depends(get_db),
@@ -50,7 +50,7 @@ def create_appointment(
         specialty_name=doctor["specialty_name"],
         appointment_date=appointment.appointment_date,
         price=appointment.price,
-        status=AppointmentStatus.CONFIRMED,
+        status=AppointmentStatus.PENDING,
         payment_id=appointment.payment_id,
         notes=appointment.notes
     )
