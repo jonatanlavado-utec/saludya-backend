@@ -3,5 +3,5 @@ services:
     build: .
     container_name: saludya-app
     ports:
-      - "8007:80"
+      - "8000:80"
     restart: unless-stopped
