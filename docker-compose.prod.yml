@@ -24,7 +24,7 @@ services:
 
   # Auth Service
   auth-service:
-    image: ${REGISTRY_PREFIX}saludya-auth:latest
+    image: ${REGISTRY_PREFIX}/saludya-auth:latest
     container_name: auth_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
@@ -42,7 +42,7 @@ services:
 
   # User Service
   user-service:
-    image: ${REGISTRY_PREFIX}saludya-user:latest
+    image: ${REGISTRY_PREFIX}/saludya-user:latest
     container_name: user_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
@@ -57,7 +57,7 @@ services:
 
   # Catalog Service
   catalog-service:
-    image: ${REGISTRY_PREFIX}saludya-catalog:latest
+    image: ${REGISTRY_PREFIX}/saludya-catalog:latest
     container_name: catalog_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
@@ -72,7 +72,7 @@ services:
 
   # Appointment Service
   appointment-service:
-    image: ${REGISTRY_PREFIX}saludya-appointment:latest
+    image: ${REGISTRY_PREFIX}/saludya-appointment:latest
     container_name: appointment_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
@@ -94,7 +94,7 @@ services:
 
   # AI Orientation Service
   ai-orientation-service:
-    image: ${REGISTRY_PREFIX}saludya-ai:latest
+    image: ${REGISTRY_PREFIX}/saludya-ai:latest
     container_name: ai_orientation_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
@@ -125,7 +125,7 @@ services:
 
   # Payment Service
   payment-service:
-    image: ${REGISTRY_PREFIX}saludya-payment:latest
+    image: ${REGISTRY_PREFIX}/saludya-payment:latest
     container_name: payment_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db

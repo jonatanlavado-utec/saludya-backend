@@ -21,20 +21,20 @@ echo "🏗️ Building images locally..."
 docker compose -f docker-compose.yml build
 
 echo "🏷️ Tagging images with prefix: ${REGISTRY_PREFIX}"
-docker tag auth_service ${REGISTRY_PREFIX}saludya-auth:latest
-docker tag user_service ${REGISTRY_PREFIX}saludya-user:latest
-docker tag catalog_service ${REGISTRY_PREFIX}saludya-catalog:latest
-docker tag appointment_service ${REGISTRY_PREFIX}saludya-appointment:latest
-docker tag ai_orientation_service ${REGISTRY_PREFIX}saludya-ai:latest
-docker tag payment_service ${REGISTRY_PREFIX}saludya-payment:latest
+docker tag saludya-backend-auth-service ${REGISTRY_PREFIX}/saludya-auth:latest
+docker tag saludya-backend-user-service ${REGISTRY_PREFIX}/saludya-user:latest
+docker tag saludya-backend-catalog-service ${REGISTRY_PREFIX}/saludya-catalog:latest
+docker tag saludya-backend-appointment-service ${REGISTRY_PREFIX}/saludya-appointment:latest
+docker tag saludya-backend-ai-orientation-service ${REGISTRY_PREFIX}/saludya-ai:latest
+docker tag saludya-backend-payment-service ${REGISTRY_PREFIX}/saludya-payment:latest
 
 echo "🚀 Pushing images to the registry..."
-docker push ${REGISTRY_PREFIX}saludya-auth:latest
-docker push ${REGISTRY_PREFIX}saludya-user:latest
-docker push ${REGISTRY_PREFIX}saludya-catalog:latest
-docker push ${REGISTRY_PREFIX}saludya-appointment:latest
-docker push ${REGISTRY_PREFIX}saludya-ai:latest
-docker push ${REGISTRY_PREFIX}saludya-payment:latest
+docker push ${REGISTRY_PREFIX}/saludya-auth:latest
+docker push ${REGISTRY_PREFIX}/saludya-user:latest
+docker push ${REGISTRY_PREFIX}/saludya-catalog:latest
+docker push ${REGISTRY_PREFIX}/saludya-appointment:latest
+docker push ${REGISTRY_PREFIX}/saludya-ai:latest
+docker push ${REGISTRY_PREFIX}/saludya-payment:latest
 
 echo "✅ All done! Your images are now in the registry."
 
