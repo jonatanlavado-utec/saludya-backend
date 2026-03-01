@@ -6,7 +6,8 @@ from database import create_tables
 app = FastAPI(
     title="SaludYa AI Orientation Service",
     description="AI-powered symptom analysis and specialty recommendation service for SaludYa",
-    version="1.0.0"
+    version="1.0.0",
+    root_path="/api/ai"
 )
 
 app.add_middleware(

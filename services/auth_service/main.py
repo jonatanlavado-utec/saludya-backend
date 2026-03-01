@@ -6,7 +6,8 @@ from database import create_tables
 app = FastAPI(
     title="SaludYa Auth Service",
     description="Authentication service for SaludYa telemedicine platform",
-    version="1.0.0"
+    version="1.0.0",
+    root_path="/api/auth"
 )
 
 app.add_middleware(

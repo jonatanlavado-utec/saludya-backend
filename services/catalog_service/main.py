@@ -6,7 +6,8 @@ from database import create_tables, seed_data
 app = FastAPI(
     title="SaludYa Catalog Service",
     description="Catalog service for specialties and doctors in SaludYa telemedicine platform",
-    version="1.0.0"
+    version="1.0.0",
+    root_path="/api/catalog"
 )
 
 app.add_middleware(
