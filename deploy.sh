@@ -18,7 +18,7 @@ docker login
 
 echo "🏗️ Building images locally..."
 # If you renamed your local file, change this to: docker compose -f docker-compose.local.yml build
-docker compose -f docker-compose.yml build
+docker compose -f docker-compose.yml build --no-cache --pull
 
 echo "🏷️ Tagging images with prefix: ${REGISTRY_PREFIX}"
 docker tag saludya-backend-auth-service ${REGISTRY_PREFIX}/saludya-auth:latest
