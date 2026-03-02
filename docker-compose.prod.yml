@@ -5,6 +5,7 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: saludya_postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: saludya
       POSTGRES_PASSWORD: saludya123

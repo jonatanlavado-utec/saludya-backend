@@ -53,14 +53,18 @@ ssh -o StrictHostKeyChecking=no -i "${EC2_KEY_PATH}" "${EC2_USER}@${EC2_IP}" << 
   git fetch origin
   git reset --hard origin/${GIT_BRANCH}
 
+  echo "--> Tearing down environment AND deleting all volumes..."
+  docker compose -f docker-compose.prod.yml down -v
+  
   echo "--> Pulling latest Docker images..."
   docker compose -f docker-compose.prod.yml pull
-
-  echo "--> Restarting services with new images and config..."
+  
+  echo "--> Starting completely fresh services..."
   docker compose -f docker-compose.prod.yml up -d
-
-  echo "--> Cleaning up old, unused images to save disk space..."
+  
+  echo "--> Cleaning up old, unused images..."
   docker image prune -f
+
 EOF
 
 echo "🎉 Deployment Complete! Your EC2 instance is running the latest code and configuration."
