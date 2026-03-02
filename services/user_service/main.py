@@ -7,7 +7,8 @@ import uvicorn
 app = FastAPI(
     title="SaludYa User Service",
     description="User management service for SaludYa telemedicine platform",
-    version="1.0.0"
+    version="1.0.0",
+    root_path="/api/users"
 )
 
 app.add_middleware(

@@ -5,6 +5,7 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: saludya_postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: saludya
       POSTGRES_PASSWORD: saludya123
@@ -24,9 +25,7 @@ services:
 
   # Auth Service
   auth-service:
-    build:
-      context: ./services/auth_service
-      dockerfile: Dockerfile
+    image: ${REGISTRY_PREFIX}/saludya-auth:latest
     container_name: auth_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
@@ -44,9 +43,7 @@ services:
 
   # User Service
   user-service:
-    build:
-      context: ./services/user_service
-      dockerfile: Dockerfile
+    image: ${REGISTRY_PREFIX}/saludya-user:latest
     container_name: user_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
@@ -61,9 +58,7 @@ services:
 
   # Catalog Service
   catalog-service:
-    build:
-      context: ./services/catalog_service
-      dockerfile: Dockerfile
+    image: ${REGISTRY_PREFIX}/saludya-catalog:latest
     container_name: catalog_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
@@ -78,9 +73,7 @@ services:
 
   # Appointment Service
   appointment-service:
-    build:
-      context: ./services/appointment_service
-      dockerfile: Dockerfile
+    image: ${REGISTRY_PREFIX}/saludya-appointment:latest
     container_name: appointment_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
@@ -102,9 +95,7 @@ services:
 
   # AI Orientation Service
   ai-orientation-service:
-    build:
-      context: ./services/ai_orientation_service
-      dockerfile: Dockerfile
+    image: ${REGISTRY_PREFIX}/saludya-ai:latest
     container_name: ai_orientation_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
@@ -135,9 +126,7 @@ services:
 
   # Payment Service
   payment-service:
-    build:
-      context: ./services/payment_service
-      dockerfile: Dockerfile
+    image: ${REGISTRY_PREFIX}/saludya-payment:latest
     container_name: payment_service
     environment:
       DATABASE_URL: postgresql://saludya:saludya123@postgres:5432/saludya_db
